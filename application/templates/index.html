@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Tunnel Manager</title>
+    
+    <script src="/static/go.js"></script>
+    <link rel="stylesheet" href="/static/main.css">
+    <link rel="stylesheet" href="/static/popup.css">
+
+    
+<script id="code">
+function init() {
+var $ = go.GraphObject.make;
+
+myDiagram =
+  $(go.Diagram, "myDiagramDiv",
+      {
+        // double-click in background creates new node
+        "clickCreatingTool.archetypeNodeData": {},
+        "undoManager.isEnabled": true
+      });
+
+// myDiagram.nodeTemplate =
+//   $(go.Node, "Spot",
+//     { locationSpot: go.Spot.Center, locationObjectName: "SHAPE" },
+//     // remember the location, which is at the center of the circle
+//     new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+    
+//     $(go.Shape, "Circle",
+//       {
+//         name: "SHAPE", fill: "steelblue", width: 110, height: 110, 
+//         // allow users to draw links to and from this circle
+//         portId: "", cursor: "pointer",
+//         fromLinkable: true, toLinkable: true,
+//         fromLinkableDuplicates: true, toLinkableDuplicates: true,
+//         fromLinkableSelfNode: true, toLinkableSelfNode: true
+//       },
+//       new go.Binding("fill", "color")),
+//     // // show in-place editable text, by default above the circle
+//     // $(go.TextBlock, "",
+//     //   { alignment: new go.Spot(0.5, 0, 0, 0), editable: true },
+//     //   new go.Binding("text").makeTwoWay()),
+    
+//       $(go.TextBlock, "",
+//         { margin: new go.Margin(0, 0, 0, 2),
+//           font: '9pt sans-serif',
+//           isMultiline: true},
+//         new go.Binding("text").makeTwoWay())
+//   );
+
+
+myDiagram.nodeTemplate =
+        $(go.Node, "Auto",  // the whole node panel
+          // define the node's outer shape, which will surround the TextBlock
+          $(go.Shape, "Circle",
+            { fill: "CornflowerBlue", stroke: "black", spot1: new go.Spot(0, 0, 5, 5), spot2: new go.Spot(1, 1, -5, -5) },new go.Binding("fill", "color")),
+      
+        $(go.TextBlock, "",
+        { margin: new go.Margin(0, 0, 0, 2),
+          font: '9pt sans-serif',
+          isMultiline: true},
+        new go.Binding("text").makeTwoWay())
+
+
+        );
+        
+// myDiagram.linkTemplate =
+//   $(go.Link,
+//     { relinkableFrom: true, relinkableTo: true },
+//     $(go.Shape, { stroke: "steelblue", strokeWidth: 1.5 }),
+//     $(go.Shape, { toArrow: "OpenTriangle", stroke: "steelblue" })
+//   );
+  myDiagram.linkTemplate =
+  $(go.Link,
+    { curve: go.Link.Bezier },
+    $(go.Shape),
+    $(go.Shape, { toArrow: "Standard" })
+  );
+
+  
+
+myDiagram.model = new go.GraphLinksModel(
+  [
+     {% for element in ssh_sessions %}
+      { key: "{{element['redirect_type']}}:{{element['BindPort']}}:{{element['IPAddress']}}:{{element['HostPort']}}", text: "{{element['redirect_type']}}:{{element['BindPort']}}:{{element['IPAddress']}}:{{element['HostPort']}}", color: "{{element['color']}}"},
+     {% endfor %}
+    { key: "1", text: "127.0.0.1", color: "red"}
+    
+  ],
+  [
+
+//   {% if somevar == "x" %}
+//   This appears if variable somevar equals the string "x"
+// {% endif %}
+
+   {% for element in ssh_sessions %}
+    { from: "1", to: "{{element['redirect_type']}}:{{element['BindPort']}}:{{element['IPAddress']}}:{{element['HostPort']}}" },
+   {% endfor %}
+  ]);
+}
+  window.addEventListener('DOMContentLoaded', init);
+</script>
+
+</head>
+
+
+<div id="myDiagramDiv" style="background: white; border: solid 1px black; width: 100%; height: 350px"></div>
+
+<!--Wraps the content-->
+<div id="Wrapper">
+
+    <!--Grid Button-->  
+    <div class="Grid">
+      <div class="Block1"></div>
+      <div class="Block1"></div>
+      <div class="Block1"></div>
+      <div class="Block1"></div>
+    </div>
+    
+    <!--List Button-->  
+    <div class="List">
+      <div class="Block2"></div>
+      <div class="Block2"></div> 
+      <div class="Block2"></div> 
+      <div class="Block2"></div> 
+    </div>
+    <div class="List2" >
+      <label for="p1" ><img src="/static/add.png" style="width:33px;height:33px;"></label> 
+    </div>
+    
+    <ul>
+    {% for element in ssh_sessions %}
+
+    <li><p> 
+      {{element['IPAddress']}}
+      {{element['Type']}}
+
+      <a href="/?IPAddress={{element['IPAddress']}}&BindPort={{element['BindPort']}}&HostPort={{element['HostPort']}}&Reconnect=1" ><img src="/static/re.png" style="width:20px;height:20px;float:right;padding-left:1em;padding-right:1em;"></a>
+      
+      <a href="/?IPAddress={{element['IPAddress']}}&BindPort={{element['BindPort']}}&HostPort={{element['HostPort']}}&Reconnect=0" ><img src="/static/kill.png" style="width:20px;height:20px;float:right;padding-left:1em;padding-right:1em;"></a>
+
+    </p></li>
+
+    {% endfor %}
+
+    
+    </ul>
+
+    </div>
+
+
+    <input type="checkbox" class="hide" id="p1">
+
+    <div id="popup1" class="overlay">
+      <div class="popup">
+        <h2>Add Node</h2>
+        <label for="p1" class="close">&times;</label>
+        <div class="content">
+          
+          <form action="/CreateNode" method="GET">
+            <div>
+              <label for="BindPort">Bind port: </label>
+              <input type="text" id="BindPort" name="BindPort">
+            </div>
+            <div>
+              <label for="HostPort">Host port: </label>
+              <input type="text" id="HostPort" name="HostPort">
+            </div>
+            <div>
+              <label for="SSHKey">Key name: </label>
+              <input type="text" id="SSHKey" name="SSHKey">
+            </div>
+            
+            <div>
+              <button>Send</button>
+            </div>
+          </form>
+
+
+        </div>
+      </div>
+    </div>
+    
+    
+<script type="text/javascript">  
+
+</script>
+
+
+<!-- <meta http-equiv="refresh" content="5" /> -->
+
+</html>
+
+
+
+

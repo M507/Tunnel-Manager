@@ -1,0 +1,178 @@
+/*Main Body*/
+body{
+    background:#333;
+ }
+ 
+ /*Website Wrapper*/
+ #Wrapper{
+   width:1100px;
+   margin:0 auto;
+   margin-top:50px;
+   margin-bottom:50px;
+ }
+ 
+ /*Unordered Lists*/
+ ul{
+   clear:both;
+ }
+ 
+ /*Unordered List - Lists*/
+ ul li{
+   width:50%;
+   height:40px;
+   background:#000000;
+   float:left;
+   list-style:none;
+   border-radius:3px;
+   margin-left:10px;
+   border:1px solid black;
+   margin-bottom:10px;
+   position:relative;
+ }
+ 
+ /*Unordered List Paragraphs*/
+ ul li p{
+   font-family:"Century Gothic";
+   color:#CC9;
+   text-shadow:#000 0px 1px;
+   text-transform:uppercase;
+   font-size:14px;
+   margin:10px;
+ }
+ 
+ /*Unordered List Hover States*/
+ ul li:hover{
+   cursor:pointer;
+   box-shadow:#ffffff 0px 0px 5px;
+ }
+ 
+ /*Grid Changer Button*/
+ .Grid{
+   width:32px;
+   height:33px;
+   padding:2px;
+   background:#434b54;
+   margin-left:50px;
+   border-radius:5px;
+   border:1px solid black;
+   float:left;
+   margin-bottom:10px;
+ }
+ 
+ /*List Changer Button*/
+ .List{
+   width:32px;
+   height:33px;
+   padding:2px;
+   background:#434b54;
+   margin-left:10px;
+   border-radius:5px;
+   border:1px solid black;
+   float:left;
+   margin-bottom:10px;
+ }
+
+ .List2{
+  width:33px;
+  height:33px;
+  padding:2px;
+  background:#434b54;
+  margin-left:10px;
+  border-radius:5px;
+  border:1px solid black;
+  float:left;
+  margin-bottom:10px;
+}
+ 
+ /*Inner Contents Of Grid*/
+ .Block1{
+   width:12px;
+   height:12px;
+   background:#FFF;
+   margin:1px;
+   border-radius:3px;
+   border:1px solid black;
+   float:left;
+ }
+ 
+ /*Inner Contents Of List*/
+ .Block2{
+   width:28px;
+   height:5px;
+   background:#FFF;
+   margin:1px;
+   border-radius:3px;
+   border:1px solid black;
+ }
+ 
+ /*Assorted Classes*/
+ .SwitchGrid{
+   width:330px;
+   height:330px;
+ }
+ 
+ .SwitchList{
+   width:25%;
+   height:40px;
+ }
+ 
+ .Image{
+   position:absolute;
+   top:0px;
+ }
+ 
+ .Arrow{
+   width: 0; 
+     height: 0; 
+     border-left: 20px solid transparent;
+     border-right: 20px solid transparent;	
+     border-bottom: 20px solid #434b54;
+     position:absolute;
+     top:221px;
+     left:30px;
+ }
+ 
+ .Description{
+   position:absolute;
+   top:235px;
+   left:-5px;
+ }
+ 
+ .Description p{
+   font-size:13px;
+   color:#F1F1F1;
+ }
+ 
+ .Border{
+   width:300px;
+     background:#333;
+     height:2px;
+     border:1px solid #525d69;
+     position:absolute;
+   top:278px;
+   left:15px;
+   z-index:10;
+ }
+ 
+ .Time{
+   position:absolute;
+   top:270px;
+   left:-5px;
+ }
+ 
+ .Time p{
+   font-size:11px;
+ }
+ 
+ /*Grid Button Hover*/
+ .Grid:hover{
+   box-shadow:#6699FF 0px 0px 5px;
+   cursor:pointer;
+ }
+ 
+ /*List Button Hover*/
+ .List:hover{
+   box-shadow:#6699FF 0px 0px 5px;
+   cursor:pointer;
+ }
+ 
