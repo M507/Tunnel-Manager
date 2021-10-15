@@ -68,6 +68,8 @@ def list_alive_sessions():
     # [[88, 88, 21.21.45.54,1]]
     return tmp_list
 
+
+
 def add_status_helper(tmp_list, config_data,key):
     for i in range(len(config_data[key])):
         config_data[key][i]['color'] = "gray"

@@ -37,20 +37,36 @@ def get_addresses(config_data):
     for host in hosts:
         ips.append(host['IPAddress'])
     
-    debugMessage(ips)
+    ips = list(dict.fromkeys(ips))
     return ips
 
 def get_address_vars(IPADDRESS, BINDPORT, HOSTPORT, config_data):
+    # The following block of code is in the case that I want to get ONLY the ssh key name 
+    # and username and I don't care about values of the ports. 
+    do_verify = 1
+    try:
+        if BINDPORT is None:
+            if HOSTPORT is None:
+                do_verify = 0
+    except:
+        do_verify = 1
+
     for host in config_data['RemoteHosts']:
         if IPADDRESS == host['IPAddress']:
-            if HOSTPORT == host['HostPort']:
-                if BINDPORT == host['BindPort']:
-                    return host, 1
+            if do_verify:
+                if HOSTPORT == host['HostPort']:
+                    if BINDPORT == host['BindPort']:
+                        return host, 1
+            else:
+                return host, 1
     for host in config_data['LocalHosts']:
         if IPADDRESS == host['IPAddress']:
-            if HOSTPORT == host['HostPort']:
-                if BINDPORT == host['BindPort']:
-                    return host, 0
+            if do_verify:
+                if HOSTPORT == host['HostPort']:
+                    if BINDPORT == host['BindPort']:
+                        return host, 0
+            else:
+                return host, 0
 
 def session_edit(IPADDRESS, BINDPORT, HOSTPORT, config_data, reconnect_tunnle = False):
     if  len(IPADDRESS) > 0:
@@ -105,11 +121,23 @@ def CreateNode_helper(config_data, SSH_KEY,BINDPORT,HOSTPORT,INSTANCE_USERNAME):
 
 @app.route("/CreateNode", methods=['GET'])
 def CreateNode():
+    """
+    Notes 1:
+    Asking the user about the direction of the connection is useless 
+    since I don't think there is any reason to use remote port forwarding and local port forwarding at the same time on the same host!
+    so I will not add anything to handle that. 
+    I will assume that if the ip already exists in your config that means that you want to use the same dirrection. 
+    """
     global ssh_sessions
     global config_data
     config_data = read_config()
 
     #request.form.get("fieldname")
+
+    IPADDRESS = request.args.get('IPAddress', default = "")
+    IPADDRESS = IPADDRESS.translate(str.maketrans('', '', '!"#$%&\'()*+,/:;<=>?@[\]^_`{|}~'))
+    IPADDRESS = IPADDRESS.lower().replace('new','')
+
     BINDPORT = request.args.get('BindPort', default = "")
     HOSTPORT = request.args.get('HostPort', default = "")
     SSH_KEY = request.args.get('SSHKey', default = "")
@@ -117,14 +145,31 @@ def CreateNode():
     HOSTPORT = sanitize(HOSTPORT, reg_condition = '[^A-Za-z0-9]+')
     SSH_KEY = SSH_KEY.translate(str.maketrans('', '', '!"#$%&\'()*+,/:;<=>?@[\]^_`{|}~'))
 
+    debugMessage(IPADDRESS)
+    debugMessage(BINDPORT)
+    debugMessage(HOSTPORT)
+    debugMessage(SSH_KEY)
+
+
     for element in [BINDPORT, HOSTPORT, SSH_KEY]:
         if len(element) == 0:
             # TODO: SHOW ERROR
             return redirect(url_for('root'))
     
-    #CreateNode_helper(config_data, SSH_KEY,BINDPORT,HOSTPORT,INSTANCE_USERNAME)
-    t = threading.Thread(target=CreateNode_helper, args=(config_data, SSH_KEY,BINDPORT,HOSTPORT,INSTANCE_USERNAME))
-    t.start()
+    if len(IPADDRESS) <= 1:
+        #CreateNode_helper(config_data, SSH_KEY,BINDPORT,HOSTPORT,INSTANCE_USERNAME)
+        t = threading.Thread(target=CreateNode_helper, args=(config_data, SSH_KEY,BINDPORT,HOSTPORT,INSTANCE_USERNAME))
+        t.start()
+    else:
+        IPAddresses = get_addresses(config_data)
+        # This means we want to establish a new tunnel
+        if IPADDRESS in IPAddresses:
+            host, direction = get_address_vars(IPADDRESS, None, None, config_data)
+            # Note 1, check the above notes
+            if direction == 1:
+                connect_tunnle(host['Key'],"0.0.0.0",BINDPORT,"0.0.0.0",HOSTPORT,host['Username'], host['IPAddress'])
+            if direction == 0:
+                connect_tunnle_local(host['Key'],"0.0.0.0",BINDPORT,"0.0.0.0",HOSTPORT,host['Username'], host['IPAddress'])
     
     return redirect(url_for('root'))
 
@@ -183,7 +228,11 @@ def root():
     hosts_tmp = config_data["LocalHosts"]
     hosts += add_redirect_type(hosts_tmp,"L")
 
-    return render_template('index.html', ssh_sessions = hosts)
+    IPAddresses = get_addresses(config_data)
+
+    keys = get_all_keys()
+
+    return render_template('index.html', ssh_sessions = hosts, IPAddresses = IPAddresses, keys = keys)
 
 
 if __name__ == "__main__":

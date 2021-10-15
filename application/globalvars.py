@@ -3,8 +3,6 @@ ROOT_DIR = '/root/SSH-Tunnels-Manager/'
 FLASK_DIR = ROOT_DIR + 'application/'
 ENV_VARIABLES = ROOT_DIR + 'variables.env'
 
-# SSH
-SSH_KEYS = ROOT_DIR + "/keys/"
 
 # SSL
 FLASK_KEY = FLASK_DIR + 'key.pem'

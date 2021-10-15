@@ -178,3 +178,10 @@ def add_redirect_type(hosts,type_var):
         return hosts
     except:
         return []
+
+def get_all_keys():
+    try:
+        l = [ path.split('/')[-1] for path in glob.glob(SSH_KEYS+"/*") ]
+        return l
+    except:
+        []

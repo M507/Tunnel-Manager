@@ -4,7 +4,7 @@ https://github.com/M507
 
 debug = 1
 
-import sys, ipaddress, os, datetime, pymongo, threading, json, string, random, re, time, ipaddress, subprocess,re, requests, signal, psutil
+import sys, ipaddress, os, datetime, pymongo, threading, json, string, random, re, time, ipaddress, subprocess,re, requests, signal, psutil, glob
 from flask import Flask, flash, render_template, request, session, redirect, url_for, abort
 from flask_cors import CORS
 from flask_limiter import Limiter
@@ -42,6 +42,7 @@ load_dotenv(dotenv_path=ENV_VARIABLES)
 WEBHOOK_URL = os.environ.get('WEBHOOK_URL')
 
 # SSH
+SSH_KEYS = ROOT_DIR + "/keys/"
 SSH_KEYS_tmp = os.environ.get('SSH_KEYS')
 if SSH_KEYS_tmp != "default":
     SSH_KEYS = SSH_KEYS_tmp

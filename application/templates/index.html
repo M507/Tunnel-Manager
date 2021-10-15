@@ -134,7 +134,7 @@ myDiagram.model = new go.GraphLinksModel(
     {% for element in ssh_sessions %}
 
     <li><p> 
-      {{element['IPAddress']}}
+      {{element['redirect_type']}}:{{element['BindPort']}}:{{element['IPAddress']}}:{{element['HostPort']}}
       {{element['Type']}}
 
       <a href="/?IPAddress={{element['IPAddress']}}&BindPort={{element['BindPort']}}&HostPort={{element['HostPort']}}&Reconnect=1" ><img src="/static/re.png" style="width:20px;height:20px;float:right;padding-left:1em;padding-right:1em;"></a>
@@ -155,24 +155,59 @@ myDiagram.model = new go.GraphLinksModel(
 
     <div id="popup1" class="overlay">
       <div class="popup">
+        
+        <p><label for="p1" class="close">&times;</label></p>
         <h2>Add Node</h2>
-        <label for="p1" class="close">&times;</label>
+        
         <div class="content">
           
           <form action="/CreateNode" method="GET">
+            
+            <div>
+              <label for="IPAddress">Choose a node: </label>
+              <!-- <select name="IPAddress">
+                <option selected value="">aws</option>
+                {% for c in IPAddresses %}
+                <option value="{{c}}">{{c}}</option>
+                {% endfor %}
+              </select> -->
+
+
+              <input id="IPAddress" name="IPAddress" type="text" list="IPAddresses" />
+              <datalist id="IPAddresses">
+                <option selected value="">New</option>
+                {% for c in IPAddresses %}
+                <option value="{{c}}">{{c}}</option>
+                {% endfor %}
+              </datalist>
+
+
+              
+            </div>
+            <br>
             <div>
               <label for="BindPort">Bind port: </label>
-              <input type="text" id="BindPort" name="BindPort">
+             <input maxlength="9" size="9" type="text" id="BindPort" name="BindPort">
             </div>
+            <br>
             <div>
               <label for="HostPort">Host port: </label>
-              <input type="text" id="HostPort" name="HostPort">
+              <input maxlength="9" size="9" type="text" id="HostPort" name="HostPort">
             </div>
+            <br>
             <div>
               <label for="SSHKey">Key name: </label>
-              <input type="text" id="SSHKey" name="SSHKey">
+              <br>
+              <br>
+              <input id="SSHKey" name="SSHKey" type="text" list="SSHKeys" />
+              <datalist id="SSHKeys">
+                {% for c in keys %}
+                <option value="{{c}}">{{c}}</option>
+                {% endfor %}
+              </datalist>
+
             </div>
-            
+            <br>
             <div>
               <button>Send</button>
             </div>
