@@ -8,7 +8,12 @@ Why did I make this? Because
 For more details: <a style="color:#c0c0c0" href="https://shellcode.blog/Using-Cobalt-Strike-with-Tunnel-Manager-for-Distributed-Hacking/"> Using Cobalt Strike with Tunnel-Manager for Distributed Hacking </a>
 
 
-## Setup
+
+### The tool's GUI
+![.](https://shellcode.blog/images/Cobalt-Strike/1/g3.png)
+
+
+## Installation
 
 To properly launch the application:
 
