@@ -136,11 +136,11 @@ def add_status(config_data):
     return config_data
 
 
-def remove_duplicates(config_data):
+def remove_duplicates(config_data, key):
     tmp_l = []
     tobe_removed = []
-    for i in range(len(config_data['RemoteHosts'])):
-        p = config_data['RemoteHosts'][i]
+    for i in range(len(config_data[key])):
+        p = config_data[key][i]
         tmp1 = p["IPAddress"]
         tmp1 += p["BindPort"]
         tmp1 += p["HostPort"]
@@ -151,7 +151,7 @@ def remove_duplicates(config_data):
             tmp_l.append(tmp1)
 
     for ind in tobe_removed:
-        config_data['RemoteHosts'].pop(ind)
+        config_data[key].pop(ind)
     return config_data
 
 def connect_tunnle(key,bind_address,BindPort,host,HostPort,username,ip, root=None):

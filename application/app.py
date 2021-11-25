@@ -68,6 +68,7 @@ def get_address_vars(IPADDRESS, BINDPORT, HOSTPORT, config_data):
             else:
                 return host, 0
 
+
 def session_edit(IPADDRESS, BINDPORT, HOSTPORT, config_data, reconnect_tunnle = False):
     if  len(IPADDRESS) > 0:
         if  len(BINDPORT) > 0:
@@ -132,7 +133,6 @@ def CreateNode():
     global config_data
     config_data = read_config()
 
-    #request.form.get("fieldname")
 
     IPADDRESS = request.args.get('IPAddress', default = "")
     IPADDRESS = IPADDRESS.translate(str.maketrans('', '', '!"#$%&\'()*+,/:;<=>?@[\]^_`{|}~'))
@@ -162,13 +162,31 @@ def CreateNode():
         t.start()
     else:
         IPAddresses = get_addresses(config_data)
-        # This means we want to establish a new tunnel
         if IPADDRESS in IPAddresses:
             host, direction = get_address_vars(IPADDRESS, None, None, config_data)
+            new_host = {
+                "IPAddress":host['IPAddress'],
+                "BindPort":BINDPORT,
+                "HostPort":HOSTPORT,
+                "status":"alive",
+                "Type":"Unknown",
+                "Username":host['Username'],
+                "Key":host['Key'],
+                "redirect_type":direction,
+                "color":"green"
+                }
+            # Also establish a new tunnel
             # Note 1, check the above notes
             if direction == 1:
+                # add a new node to your config file
+                config_data['RemoteHosts'].append(new_host)
+                debugMessage("Adding "+ str(config_data['RemoteHosts'][-1]) + " to config.json")
+                overwrite_vars(config_data)
                 connect_tunnle(host['Key'],"0.0.0.0",BINDPORT,"0.0.0.0",HOSTPORT,host['Username'], host['IPAddress'])
             if direction == 0:
+                config_data['LocalHosts'].append(new_host)
+                debugMessage("Adding "+ str(config_data['LocalHosts'][-1]) + " to config.json")
+                overwrite_vars(config_data)
                 connect_tunnle_local(host['Key'],"0.0.0.0",BINDPORT,"0.0.0.0",HOSTPORT,host['Username'], host['IPAddress'])
     
     return redirect(url_for('root'))
@@ -222,11 +240,13 @@ def root():
     #ssh_sessions = [ ' '.join(proc.cmdline()) for proc in ssh_sessions]
     
     config_data = add_status(config_data)
-    config_data = remove_duplicates(config_data)
+    config_data = remove_duplicates(config_data, "RemoteHosts")
+    config_data = remove_duplicates(config_data, "LocalHosts")
     hosts_tmp = config_data["RemoteHosts"]
     hosts = add_redirect_type(hosts_tmp,"R")
     hosts_tmp = config_data["LocalHosts"]
     hosts += add_redirect_type(hosts_tmp,"L")
+    hosts.sort(key=lambda x: x["IPAddress"])
 
     IPAddresses = get_addresses(config_data)
 
