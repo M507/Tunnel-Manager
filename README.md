@@ -1,9 +1,12 @@
 # Tunnel-Manager
 
-Why did I make this? Because 
-- I need a fast way to replace burned IPs.
-- I need an easy way to spawn up and destroy tunnels via a GUI. 
-- I need persistent configuration.
+Why did I make this? Because I need:
+- A fast way to replace burned IPs.
+- An easy way to spawn up and destroy tunnels on AWS.
+- Persistent tunnel configurations.
+- Shareable configurations.
+- Visualization of the network flow.
+
 
 For more details: <a style="color:#c0c0c0" href="https://shellcode.blog/Using-Cobalt-Strike-with-Tunnel-Manager-for-Distributed-Hacking/"> Using Cobalt Strike with Tunnel-Manager for Distributed Hacking </a>
 
