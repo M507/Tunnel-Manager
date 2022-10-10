@@ -67,6 +67,10 @@ def create_aws_network_settings(config_data_tmp):
     config_data_tmp['aws']['sg'] = sec_group.id
     overwrite_vars(config_data_tmp)
 
+
+"""
+This function terminates ec2 instances using the instance id
+"""
 def terminate_instance(id_tmp):
     try:
         ec2_client = getec2()
