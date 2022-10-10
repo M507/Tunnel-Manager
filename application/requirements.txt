@@ -8,3 +8,5 @@ pyvmomi==7.0.1
 packer.py==0.3.0
 python-dotenv==0.15.0
 boto3==1.18.49
+pymongo==4.1.1
+psutil==5.9.2

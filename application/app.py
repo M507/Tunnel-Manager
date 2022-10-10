@@ -14,6 +14,18 @@ config_data = read_config()
 if config_data['autoreconnect']:
     connect_all(config_data)
 
+
+def check_aws_network_settings(config_data_tmp):
+    try:
+        for ke, val in config_data_tmp['aws'].items():
+            if len(val) <= 0:
+                create_aws_network_settings(config_data_tmp)
+    except Exception as e:
+        print("check_aws_network_settings() error")
+        print(str(e))
+        create_aws_network_settings(config_data_tmp)
+
+
 def check_if_missing(ssh_sessions):
     ssh_sessions_tmp = list_ps()
     ssh_sessions_tmp = [ ' '.join(proc.cmdline()) for proc in ssh_sessions_tmp]
@@ -69,7 +81,7 @@ def get_address_vars(IPADDRESS, BINDPORT, HOSTPORT, config_data):
                 return host, 0
 
 
-def session_edit(IPADDRESS, BINDPORT, HOSTPORT, config_data, reconnect_tunnle = False):
+def session_edit(IPADDRESS, BINDPORT, HOSTPORT, TERMINATE_INSTANCE, INSTANCE_ID, config_data, reconnect_tunnle = False):
     if  len(IPADDRESS) > 0:
         if  len(BINDPORT) > 0:
             if  len(HOSTPORT) > 0:
@@ -80,6 +92,19 @@ def session_edit(IPADDRESS, BINDPORT, HOSTPORT, config_data, reconnect_tunnle = 
                 debugMessage(str(IPADDRESS)+ " was found to edit")
                 debugMessage("About to kill "+ str(host))
                 kill_a_session(host['IPAddress'],host['BindPort'], host['HostPort'])
+                if TERMINATE_INSTANCE:
+                    if debug:
+                        debugMessage("Deleting: "+ str(INSTANCE_ID))
+                    terminate_instance(INSTANCE_ID)
+                    RemoteHosts_list = []
+                    for x in config_data['RemoteHosts']:
+                        try:
+                            if x['IPAddress'] != IPADDRESS:
+                                RemoteHosts_list.append(x)
+                        except:
+                            RemoteHosts_list.append(x)
+                    config_data['RemoteHosts'] = RemoteHosts_list
+                    overwrite_vars(config_data)
                 if reconnect_tunnle:
                     time.sleep(5)
                     # if direction is 1 that means it's a remote redirect 
@@ -92,7 +117,9 @@ def session_edit(IPADDRESS, BINDPORT, HOSTPORT, config_data, reconnect_tunnle = 
 
 def CreateNode_helper(config_data, SSH_KEY,BINDPORT,HOSTPORT,INSTANCE_USERNAME):
     public_ip_address = "127.0.0.2"
-    public_ip_address = create_instance()
+    create_instance_list = create_instance(read_config())
+    public_ip_address = create_instance_list[0]
+    instances_id = create_instance_list[1]
 
     # Reconfigure SSH
     reconfigure_ssh(SSH_KEY,INSTANCE_USERNAME,public_ip_address)
@@ -102,6 +129,7 @@ def CreateNode_helper(config_data, SSH_KEY,BINDPORT,HOSTPORT,INSTANCE_USERNAME):
 
     # From now and on...only use root to connect to aws nodes
     new_unrecorded_session = {
+                "ID":instances_id,
                 "IPAddress":public_ip_address,
                 "BindPort":BINDPORT,
                 "HostPort":HOSTPORT,
@@ -165,6 +193,7 @@ def CreateNode():
         if IPADDRESS in IPAddresses:
             host, direction = get_address_vars(IPADDRESS, None, None, config_data)
             new_host = {
+                "ID":"",
                 "IPAddress":host['IPAddress'],
                 "BindPort":BINDPORT,
                 "HostPort":HOSTPORT,
@@ -219,19 +248,29 @@ def root():
     BINDPORT = request.args.get('BindPort', default = "")
     HOSTPORT = request.args.get('HostPort', default = "")
     RECONNECT = request.args.get('Reconnect', default = "")
+    TERMINATE_INSTANCE = request.args.get('Terminate', default = "")
+    INSTANCE_ID = request.args.get('ID', default = "")
 
     BINDPORT = sanitize(BINDPORT, reg_condition = '[^A-Za-z0-9]+')
     HOSTPORT = sanitize(HOSTPORT, reg_condition = '[^A-Za-z0-9]+')
     RECONNECT = sanitize(RECONNECT, reg_condition = '[^A-Za-z0-9]+')
+    TERMINATE_INSTANCE = sanitize(TERMINATE_INSTANCE, reg_condition = '[^A-Za-z0-9]+')
+    
 
     # \/ customized string.punctuation
     IPADDRESS = IPADDRESS.translate(str.maketrans('', '', '!"#$%&\'()*+,/:;<=>?@[\]^_`{|}~'))
+    INSTANCE_ID = INSTANCE_ID.translate(str.maketrans('', '', '!"#$%&\'()*+,/:;<=>?@[\]^_`{|}~'))
 
     if RECONNECT == "1":
         RECONNECT = True
     else:
         RECONNECT = False
-    if session_edit(IPADDRESS, BINDPORT, HOSTPORT, config_data, RECONNECT):
+    if TERMINATE_INSTANCE == "1":
+        TERMINATE_INSTANCE = True
+    else:
+        TERMINATE_INSTANCE = False
+    
+    if session_edit(IPADDRESS, BINDPORT, HOSTPORT, TERMINATE_INSTANCE, INSTANCE_ID, config_data, RECONNECT):
         return redirect(url_for('root'))
 
     #check_if_missing(ssh_sessions)
@@ -259,6 +298,6 @@ if __name__ == "__main__":
     # import declared routes
     from common import *
     from globalvars import *
-
+    check_aws_network_settings(config_data)
 
     app.run(host='0.0.0.0', port = 5000 ,ssl_context=(FLASK_CERT, FLASK_KEY))   
