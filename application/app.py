@@ -20,10 +20,12 @@ def check_aws_network_settings(config_data_tmp):
         for ke, val in config_data_tmp['aws'].items():
             if len(val) <= 0:
                 create_aws_network_settings(config_data_tmp)
+                return
     except Exception as e:
         print("check_aws_network_settings() error")
         print(str(e))
         create_aws_network_settings(config_data_tmp)
+        return
 
 
 def check_if_missing(ssh_sessions):
