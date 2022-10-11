@@ -3,9 +3,14 @@ from config import *
 from common import *
 
 def getec2():
-    ec2_client = boto3.resource('ec2', region_name="us-east-2", aws_access_key_id=ACCESS_KEY,
-         aws_secret_access_key= SECRET_KEY)
-    return ec2_client
+    try:
+        ec2_client = boto3.resource('ec2', region_name="us-east-2", aws_access_key_id=ACCESS_KEY,
+            aws_secret_access_key= SECRET_KEY)
+        return ec2_client
+    except Exception as e:
+        print("Error: getec2(). Check AWS env values.")
+        print(str(e))
+        exit(0)
 
 def create_aws_network_settings(config_data_tmp):
     ec2_client = getec2()
@@ -66,6 +71,7 @@ def create_aws_network_settings(config_data_tmp):
     print(sec_group.id)
     config_data_tmp['aws']['sg'] = sec_group.id
     overwrite_vars(config_data_tmp)
+    return config_data_tmp
 
 
 """
@@ -81,21 +87,33 @@ def terminate_instance(id_tmp):
         print(str(e))
         return 0
 
-def create_instance(config_data_tmp):
+def create_instance(config_data_tmp, trynum=0):
     ec2_client = getec2()
 
-    # Create instance
-    instances = ec2_client.create_instances(
-        ImageId=IMAGEID, InstanceType='t2.micro', MaxCount=1, MinCount=1, KeyName=SSHKEYNAME,
-        NetworkInterfaces=[{'SubnetId': config_data_tmp['aws']['subnet'], 'DeviceIndex': 0, 'AssociatePublicIpAddress': True, 'Groups': [config_data_tmp['aws']['sg']]}])
-    instances[0].wait_until_running()
+    if trynum > 1:
+        exit(0)
+        return [0,0]
     
+    try:
+        # Create instance
+        instances = ec2_client.create_instances(
+            ImageId=IMAGEID, InstanceType='t2.micro', MaxCount=1, MinCount=1, KeyName=SSHKEYNAME,
+            NetworkInterfaces=[{'SubnetId': config_data_tmp['aws']['subnet'], 'DeviceIndex': 0, 'AssociatePublicIpAddress': True, 'Groups': [config_data_tmp['aws']['sg']]}])
+        instances[0].wait_until_running()
+    except Exception as e:
+        print("Error: create_instance()")
+        print(str(e))
+        config_data_tmp = create_aws_network_settings(config_data_tmp)
+        create_instance(config_data_tmp, 1)
+        return 0
+
     public_ip_address = ""
     while len(public_ip_address) <= 0:
         time.sleep(30)
         instances[0].reload()
         public_ip_address = instances[0].public_ip_address
-        print(public_ip_address)
+        print("IP: "+str(public_ip_address))
+        print("ID: "+str(instances[0].id))
     return [str(public_ip_address),str(instances[0].id)]
 
 

@@ -1,7 +1,7 @@
 Flask==1.1.2
 Flask-Cors==3.0.9
 Flask-Limiter==1.4
-requests==2.18.4
+requests==2.20.0
 requests-unixsocket==0.1.5
 Werkzeug==1.0.1
 pyvmomi==7.0.1
