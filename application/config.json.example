@@ -1,0 +1,12 @@
+{
+    "aws" {
+        "vpc":"",
+        "igw":"",
+        "rtb":"",
+        "subnet":"",
+        "sg":""
+    },
+    "autoreconnect": 0,
+    "RemoteHosts": [],
+    "LocalHosts": []
+}
