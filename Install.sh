@@ -6,5 +6,5 @@ sudo apt-get update -y
 # sudo apt-get install python3.7 -y
 # curl -O https://bootstrap.pypa.io/get-pip.py
 # sudo python3.7 get-pip.py
-apt install python3-pip -y
-pip3 install -r application/requirements.txt
+sudo apt install python3-pip -y
+sudo pip3 install -r application/requirements.txt
