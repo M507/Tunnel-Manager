@@ -103,8 +103,8 @@ def create_instance(config_data_tmp, trynum=0):
     except Exception as e:
         print("Error: create_instance()")
         print(str(e))
-        config_data_tmp = create_aws_network_settings(config_data_tmp)
-        create_instance(config_data_tmp, 1)
+        #config_data_tmp = create_aws_network_settings(config_data_tmp)
+        #create_instance(config_data_tmp, 1)
         return 0
 
     public_ip_address = ""
