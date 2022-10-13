@@ -53,8 +53,6 @@ SECRET_KEY = os.environ.get('aws_secret_key')
 
 # Instance info
 SSHKEYNAME = os.environ.get('SSHKeyName')
-SUBNETID = os.environ.get('SubnetId')
-SECURITYGROUPID = os.environ.get('SecurityGroupId')
 IMAGEID = os.environ.get('ImageId')
 INSTANCE_USERNAME = os.environ.get('Instance_username')
 
