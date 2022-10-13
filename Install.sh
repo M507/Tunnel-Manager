@@ -8,3 +8,4 @@ sudo apt-get update -y
 # sudo python3.7 get-pip.py
 sudo apt install python3-pip -y
 sudo pip3 install -r application/requirements.txt
+cp application/config.json.example application/config.json
