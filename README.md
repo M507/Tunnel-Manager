@@ -1,11 +1,14 @@
 # Tunnel-Manager
 
-Why did I make this? Because I need:
-- A fast way to replace burned IPs.
-- An easy way to spawn up and destroy tunnels on AWS.
+Why did I make this? Because I need a system that can:
+- Create C2 traffic redirectors automatically.
+- Replace burned IPs quickly.
+- Spawn up and destroy remote and local tunnels automatically.
 - Persistent tunnel configurations.
 - Shareable configurations.
 - Visualization of the network flow.
+- Wipe out everything from AWS when done. 
+
 
 
 For more details: <a style="color:#c0c0c0" href="https://shellcode.blog/Using-Cobalt-Strike-with-Tunnel-Manager-for-Distributed-Hacking/"> Using Cobalt Strike with Tunnel-Manager for Distributed Hacking </a>
