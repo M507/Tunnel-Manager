@@ -139,7 +139,9 @@ myDiagram.model = new go.GraphLinksModel(
 
       <a href="/?IPAddress={{element['IPAddress']}}&BindPort={{element['BindPort']}}&HostPort={{element['HostPort']}}&Reconnect=1" ><img src="/static/re.png" style="width:20px;height:20px;float:right;padding-left:1em;padding-right:1em;"></a>
       
-      <a href="/?IPAddress={{element['IPAddress']}}&BindPort={{element['BindPort']}}&HostPort={{element['HostPort']}}&Reconnect=0" ><img src="/static/kill.png" style="width:20px;height:20px;float:right;padding-left:1em;padding-right:1em;"></a>
+      <a href="/?IPAddress={{element['IPAddress']}}&BindPort={{element['BindPort']}}&HostPort={{element['HostPort']}}&Reconnect=0" ><img src="/static/stop.png" style="width:20px;height:20px;float:right;padding-left:1em;padding-right:1em;"></a>
+
+      <a href="/?IPAddress={{element['IPAddress']}}&BindPort={{element['BindPort']}}&HostPort={{element['HostPort']}}&Reconnect=0&Terminate=1&ID={{element['ID']}}" ><img src="/static/kill.png" style="width:20px;height:20px;float:right;padding-left:1em;padding-right:1em;"></a>
 
     </p></li>
 

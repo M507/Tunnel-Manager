@@ -14,110 +14,160 @@ config_data = read_config()
 if config_data['autoreconnect']:
     connect_all(config_data)
 
-def check_if_missing(ssh_sessions):
-    ssh_sessions_tmp = list_ps()
-    ssh_sessions_tmp = [ ' '.join(proc.cmdline()) for proc in ssh_sessions_tmp]
-    Missing_vals = (set(ssh_sessions).difference(ssh_sessions_tmp))
-    debugMessage("Missing values in second list:"+ str(Missing_vals))
-    #print("Additional values in second list:", (set(list2).difference(list1)))
 
-    for disconnection in Missing_vals:
-        slack_notify("Interface "+ disconnection+" is disconnected")
+def check_aws_network_settings(config_data_tmp):
+    try:
+        for ke, val in config_data_tmp['aws'].items():
+            if len(val) <= 0:
+                create_aws_network_settings(config_data_tmp)
+                return
+    except Exception as e:
+        print("check_aws_network_settings() error")
+        print(str(e))
+        create_aws_network_settings(config_data_tmp)
+        return
+
+
+def check_if_missing(ssh_sessions):
+    try:
+        ssh_sessions_tmp = list_ps()
+        ssh_sessions_tmp = [ ' '.join(proc.cmdline()) for proc in ssh_sessions_tmp]
+        Missing_vals = (set(ssh_sessions).difference(ssh_sessions_tmp))
+        debugMessage("Missing values in second list:"+ str(Missing_vals))
+        #print("Additional values in second list:", (set(list2).difference(list1)))
+
+        for disconnection in Missing_vals:
+            slack_notify("Interface "+ disconnection+" is disconnected")
+    except Exception as e:
+        print("check_if_missing() error")
+        print(str(e))
 
 def logical_xor(str1, str2):
     return bool(str1) ^ bool(str2)
 
 def get_addresses(config_data):
-    hosts = config_data['RemoteHosts']
-    ips = []
-    for host in hosts:
-        ips.append(host['IPAddress'])
+    try:
+        hosts = config_data['RemoteHosts']
+        ips = []
+        for host in hosts:
+            ips.append(host['IPAddress'])
 
-    hosts = config_data['LocalHosts']
-    for host in hosts:
-        ips.append(host['IPAddress'])
-    
-    ips = list(dict.fromkeys(ips))
-    return ips
+        hosts = config_data['LocalHosts']
+        for host in hosts:
+            ips.append(host['IPAddress'])
+        
+        ips = list(dict.fromkeys(ips))
+        return ips
+    except Exception as e:
+        print("get_addresses() error")
+        print(str(e))
 
 def get_address_vars(IPADDRESS, BINDPORT, HOSTPORT, config_data):
     # The following block of code is in the case that I want to get ONLY the ssh key name 
     # and username and I don't care about values of the ports. 
-    do_verify = 1
     try:
-        if BINDPORT is None:
-            if HOSTPORT is None:
-                do_verify = 0
-    except:
         do_verify = 1
+        try:
+            if BINDPORT is None:
+                if HOSTPORT is None:
+                    do_verify = 0
+        except:
+            do_verify = 1
 
-    for host in config_data['RemoteHosts']:
-        if IPADDRESS == host['IPAddress']:
-            if do_verify:
-                if HOSTPORT == host['HostPort']:
-                    if BINDPORT == host['BindPort']:
-                        return host, 1
-            else:
-                return host, 1
-    for host in config_data['LocalHosts']:
-        if IPADDRESS == host['IPAddress']:
-            if do_verify:
-                if HOSTPORT == host['HostPort']:
-                    if BINDPORT == host['BindPort']:
-                        return host, 0
-            else:
-                return host, 0
+        for host in config_data['RemoteHosts']:
+            if IPADDRESS == host['IPAddress']:
+                if do_verify:
+                    if HOSTPORT == host['HostPort']:
+                        if BINDPORT == host['BindPort']:
+                            return host, 1
+                else:
+                    return host, 1
+        for host in config_data['LocalHosts']:
+            if IPADDRESS == host['IPAddress']:
+                if do_verify:
+                    if HOSTPORT == host['HostPort']:
+                        if BINDPORT == host['BindPort']:
+                            return host, 0
+                else:
+                    return host, 0
+    except Exception as e:
+        print("get_address_vars() error")
+        print(str(e))
 
 
-def session_edit(IPADDRESS, BINDPORT, HOSTPORT, config_data, reconnect_tunnle = False):
-    if  len(IPADDRESS) > 0:
-        if  len(BINDPORT) > 0:
-            if  len(HOSTPORT) > 0:
-                # debugMessage(IPADDRESS)
-                # debugMessage(BINDPORT)
-                # debugMessage(HOSTPORT)
-                host, direction = get_address_vars(IPADDRESS, BINDPORT, HOSTPORT, config_data)
-                debugMessage(str(IPADDRESS)+ " was found to edit")
-                debugMessage("About to kill "+ str(host))
-                kill_a_session(host['IPAddress'],host['BindPort'], host['HostPort'])
-                if reconnect_tunnle:
-                    time.sleep(5)
-                    # if direction is 1 that means it's a remote redirect 
-                    if direction == 1:
-                        connect_tunnle(host['Key'],"0.0.0.0",host['BindPort'],"0.0.0.0",host['HostPort'],host['Username'], host['IPAddress'])
-                    if direction == 0:
-                        connect_tunnle_local(host['Key'],"0.0.0.0",host['BindPort'],"0.0.0.0",host['HostPort'],host['Username'], host['IPAddress'])
-                return 1
-    return 0
+def session_edit(IPADDRESS, BINDPORT, HOSTPORT, TERMINATE_INSTANCE, INSTANCE_ID, config_data, reconnect_tunnle = False):
+    try:
+        if  len(IPADDRESS) > 0:
+            if  len(BINDPORT) > 0:
+                if  len(HOSTPORT) > 0:
+                    # debugMessage(IPADDRESS)
+                    # debugMessage(BINDPORT)
+                    # debugMessage(HOSTPORT)
+                    host, direction = get_address_vars(IPADDRESS, BINDPORT, HOSTPORT, config_data)
+                    debugMessage(str(IPADDRESS)+ " was found to edit")
+                    debugMessage("About to kill "+ str(host))
+                    kill_a_session(host['IPAddress'],host['BindPort'], host['HostPort'])
+                    if TERMINATE_INSTANCE:
+                        if debug:
+                            debugMessage("Deleting: "+ str(INSTANCE_ID))
+                        terminate_instance(INSTANCE_ID)
+                        RemoteHosts_list = []
+                        for x in config_data['RemoteHosts']:
+                            try:
+                                if x['IPAddress'] != IPADDRESS:
+                                    RemoteHosts_list.append(x)
+                            except:
+                                RemoteHosts_list.append(x)
+                        config_data['RemoteHosts'] = RemoteHosts_list
+                        overwrite_vars(config_data)
+                    if reconnect_tunnle:
+                        time.sleep(5)
+                        # if direction is 1 that means it's a remote redirect 
+                        if direction == 1:
+                            connect_tunnle(host['Key'],"0.0.0.0",host['BindPort'],"0.0.0.0",host['HostPort'],host['Username'], host['IPAddress'])
+                        if direction == 0:
+                            connect_tunnle_local(host['Key'],"0.0.0.0",host['BindPort'],"0.0.0.0",host['HostPort'],host['Username'], host['IPAddress'])
+                    return 1
+        return 0
+    except Exception as e:
+        print("session_edit() error")
+        print(str(e))
 
 def CreateNode_helper(config_data, SSH_KEY,BINDPORT,HOSTPORT,INSTANCE_USERNAME):
-    public_ip_address = "127.0.0.2"
-    public_ip_address = create_instance()
+    try:
+        public_ip_address = "127.0.0.2"
+        create_instance_list = create_instance(read_config())
+        public_ip_address = create_instance_list[0]
+        instances_id = create_instance_list[1]
 
-    # Reconfigure SSH
-    reconfigure_ssh(SSH_KEY,INSTANCE_USERNAME,public_ip_address)
-    
-    # Connect using root
-    connect_tunnle(SSH_KEY,"0.0.0.0",BINDPORT,"0.0.0.0",HOSTPORT,INSTANCE_USERNAME,public_ip_address, root=True)
+        # Reconfigure SSH
+        reconfigure_ssh(SSH_KEY,INSTANCE_USERNAME,public_ip_address)
+        
+        # Connect using root
+        connect_tunnle(SSH_KEY,"0.0.0.0",BINDPORT,"0.0.0.0",HOSTPORT,INSTANCE_USERNAME,public_ip_address, root=True)
 
-    # From now and on...only use root to connect to aws nodes
-    new_unrecorded_session = {
-                "IPAddress":public_ip_address,
-                "BindPort":BINDPORT,
-                "HostPort":HOSTPORT,
-                "status":"alive",
-                "Type":"Unknown",
-                # It needs root to connect - I meannnn .. just going to hack my way in : ) 
-                "Username":"root",
-                #"Username":INSTANCE_USERNAME,
-                "Key":SSH_KEY,
-                "color":"green"
-                }
-    config_data['RemoteHosts'].append(new_unrecorded_session)
+        # From now and on...only use root to connect to aws nodes
+        new_unrecorded_session = {
+                    "ID":instances_id,
+                    "IPAddress":public_ip_address,
+                    "BindPort":BINDPORT,
+                    "HostPort":HOSTPORT,
+                    "status":"alive",
+                    "Type":"Unknown",
+                    # It needs root to connect - I meannnn .. just going to hack my way in : ) 
+                    "Username":"root",
+                    #"Username":INSTANCE_USERNAME,
+                    "Key":SSH_KEY,
+                    "color":"green"
+                    }
+        config_data['RemoteHosts'].append(new_unrecorded_session)
 
-    debugMessage(config_data['RemoteHosts'][-1])
-    overwrite_vars(config_data)
-    return 0
+        debugMessage(config_data['RemoteHosts'][-1])
+        overwrite_vars(config_data)
+        return 0
+    except Exception as e:
+        print("CreateNode_helper() error")
+        print(str(e))
 
 
 @app.route("/CreateNode", methods=['GET'])
@@ -165,6 +215,7 @@ def CreateNode():
         if IPADDRESS in IPAddresses:
             host, direction = get_address_vars(IPADDRESS, None, None, config_data)
             new_host = {
+                "ID":"",
                 "IPAddress":host['IPAddress'],
                 "BindPort":BINDPORT,
                 "HostPort":HOSTPORT,
@@ -219,19 +270,29 @@ def root():
     BINDPORT = request.args.get('BindPort', default = "")
     HOSTPORT = request.args.get('HostPort', default = "")
     RECONNECT = request.args.get('Reconnect', default = "")
+    TERMINATE_INSTANCE = request.args.get('Terminate', default = "")
+    INSTANCE_ID = request.args.get('ID', default = "")
 
     BINDPORT = sanitize(BINDPORT, reg_condition = '[^A-Za-z0-9]+')
     HOSTPORT = sanitize(HOSTPORT, reg_condition = '[^A-Za-z0-9]+')
     RECONNECT = sanitize(RECONNECT, reg_condition = '[^A-Za-z0-9]+')
+    TERMINATE_INSTANCE = sanitize(TERMINATE_INSTANCE, reg_condition = '[^A-Za-z0-9]+')
+    
 
     # \/ customized string.punctuation
     IPADDRESS = IPADDRESS.translate(str.maketrans('', '', '!"#$%&\'()*+,/:;<=>?@[\]^_`{|}~'))
+    INSTANCE_ID = INSTANCE_ID.translate(str.maketrans('', '', '!"#$%&\'()*+,/:;<=>?@[\]^_`{|}~'))
 
     if RECONNECT == "1":
         RECONNECT = True
     else:
         RECONNECT = False
-    if session_edit(IPADDRESS, BINDPORT, HOSTPORT, config_data, RECONNECT):
+    if TERMINATE_INSTANCE == "1":
+        TERMINATE_INSTANCE = True
+    else:
+        TERMINATE_INSTANCE = False
+    
+    if session_edit(IPADDRESS, BINDPORT, HOSTPORT, TERMINATE_INSTANCE, INSTANCE_ID, config_data, RECONNECT):
         return redirect(url_for('root'))
 
     #check_if_missing(ssh_sessions)
@@ -259,6 +320,6 @@ if __name__ == "__main__":
     # import declared routes
     from common import *
     from globalvars import *
-
+    check_aws_network_settings(config_data)
 
     app.run(host='0.0.0.0', port = 5000 ,ssl_context=(FLASK_CERT, FLASK_KEY))   
