@@ -13,7 +13,7 @@ Why did I make this? Because I need a system that can:
 There are no documents currently. The following slides could explain some of the tool's features.
 
 
-![.](images/topo.png)
+![.](images/Distributed_hacking_0.png)
 ![.](images/Distributed_hacking_5.png)
 ![.](images/Distributed_hacking_6.png)
 ![.](images/Distributed_hacking_7.png)
