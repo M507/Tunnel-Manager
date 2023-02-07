@@ -14,7 +14,7 @@ body:
     validations:
       required: true
   - type: textarea
-    id: reprod
+    id: reproduction
     attributes:
       label: "Reproduction steps"
       description: Please enter an explicit description of your issue
@@ -27,7 +27,7 @@ body:
     validations:
       required: true
   - type: textarea
-    id: reprod
+    id: config
     attributes:
       label: "config.json file"
       description: Please copy and paste application/config.json
